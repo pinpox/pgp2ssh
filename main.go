@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "bytes"
 	"crypto/sha512"
 	"fmt"
 	"log"
@@ -11,19 +10,19 @@ import (
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
 	"github.com/ProtonMail/go-crypto/openpgp/eddsa"
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
-	 "github.com/davecgh/go-spew/spew"
-	"golang.org/x/crypto/ssh"
 
 	"strings"
 
 	"crypto/ed25519"
 	"errors"
-	"reflect"
-
-	// "filippo.io/edwards25519"
 	"github.com/Mic92/ssh-to-age/bech32"
 	"golang.org/x/crypto/curve25519"
+	// "github.com/davecgh/go-spew/spew"
+	// "bytes"
+	// "golang.org/x/crypto/ssh"
 	// "golang.org/x/crypto/curve25519"
+	// "reflect"
+	// "filippo.io/edwards25519"
 )
 
 func readEntity(keypath string) (*openpgp.Entity, error) {
@@ -55,26 +54,9 @@ func ed25519PrivateKeyToCurve25519(pk ed25519.PrivateKey) ([]byte, error) {
 	return out[:curve25519.ScalarSize], nil
 }
 
-func SSHPrivateKeyToAge(sshKey, passphrase []byte) (*string, error) {
-	var (
-		privateKey interface{}
-		err        error
-	)
-	if len(passphrase) > 0 {
-		privateKey, err = ssh.ParseRawPrivateKeyWithPassphrase(sshKey, passphrase)
-	} else {
-		privateKey, err = ssh.ParseRawPrivateKey(sshKey)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse ssh private key: %w", err)
-	}
+func SSHPrivateKeyToAge(privatekey ed25519.PrivateKey, passphrase []byte) (*string, error) {
 
-	ed25519Key, ok := privateKey.(*ed25519.PrivateKey)
-	if !ok {
-		return nil, fmt.Errorf("got %s key type but: %w", reflect.TypeOf(privateKey), UnsupportedKeyType)
-	}
-
-	bytes, err := ed25519PrivateKeyToCurve25519(*ed25519Key) //THIS
+	bytes, err := ed25519PrivateKeyToCurve25519(privatekey)
 	if err != nil {
 		return nil, err
 	}
@@ -94,19 +76,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println(reflect.TypeOf(e.PrivateKey.PrivateKey))
+	// log.Println(reflect.TypeOf(e.PrivateKey.PrivateKey))
 
 	castkey, ok := e.PrivateKey.PrivateKey.(*eddsa.PrivateKey)
 	if !ok {
 		log.Fatal("failed to cast")
 	}
-	spew.Dump(castkey)
+	// spew.Dump(castkey)
 
+	// TODO: Not sure if these are the correct bytes ??????
 	agekey, err := SSHPrivateKeyToAge(castkey.D, []byte{})
 
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(agekey)
+	fmt.Println(*agekey)
 
 }
