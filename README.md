@@ -1,7 +1,17 @@
 
-Example key provided in `./gnupg`
+Example key provided in `test-key.asc` to be imported. Use `--homedir` with
+`gpg` to set a temporary `.gnupg` directory
 
-```
+```sh
+❯ gpg --homedir ./gnupg --import test-key.asc                                                                                                                                                                          impure ❄ ssh-to-age age
+gpg: WARNING: unsafe permissions on homedir '/home/pinpox/code/github.com/pinpox/gpg2age/./gnupg'
+gpg: key 76188CF30717B54E: public key "test (test) <test@test.com>" imported
+gpg: key 76188CF30717B54E: secret key imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+gpg:       secret keys read: 1
+gpg:   secret keys imported: 1
+
 ❯ gpg --homedir ./gnupg_testkey/ -K
 /home/pinpox/code/github.com/pinpox/gpg2age/./gnupg_testkey/pubring.kbx
 -----------------------------------------------------------------------
