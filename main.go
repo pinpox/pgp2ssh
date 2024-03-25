@@ -16,12 +16,14 @@ import (
 	"crypto/ed25519"
 	"errors"
 	"github.com/Mic92/ssh-to-age/bech32"
+	"github.com/davecgh/go-spew/spew"
 	"golang.org/x/crypto/curve25519"
-	// "github.com/davecgh/go-spew/spew"
 	// "bytes"
 	// "golang.org/x/crypto/ssh"
 	// "golang.org/x/crypto/curve25519"
-	// "reflect"
+	// "https://pkg.go.dev/crypto/ed25519#PrivateKey
+	// "crypto/ed25519"ccc1be8d-24dc-41ad-9d66-b657711419d7
+	"reflect"
 	// "filippo.io/edwards25519"
 )
 
@@ -54,12 +56,7 @@ func ed25519PrivateKeyToCurve25519(pk ed25519.PrivateKey) ([]byte, error) {
 	return out[:curve25519.ScalarSize], nil
 }
 
-func SSHPrivateKeyToAge(privatekey ed25519.PrivateKey, passphrase []byte) (*string, error) {
-
-	bytes, err := ed25519PrivateKeyToCurve25519(privatekey)
-	if err != nil {
-		return nil, err
-	}
+func SSHPrivateKeyToAge(bytes, passphrase []byte) (*string, error) {
 
 	s, err := bech32.Encode("AGE-SECRET-KEY-", bytes)
 	if err != nil {
@@ -71,22 +68,31 @@ func SSHPrivateKeyToAge(privatekey ed25519.PrivateKey, passphrase []byte) (*stri
 
 func main() {
 
-	e, err := readEntity("test-key.asc")
+	keyfile := "./gnupg/test-key.asc"
+
+	e, err := readEntity(keyfile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// log.Println(reflect.TypeOf(e.PrivateKey.PrivateKey))
-
+	spew.Config.MaxDepth = 2
+	spew.Config.Indent = "     "
+	log.Println(reflect.TypeOf(e.PrivateKey.PrivateKey))
 	castkey, ok := e.PrivateKey.PrivateKey.(*eddsa.PrivateKey)
 	if !ok {
 		log.Fatal("failed to cast")
 	}
-	// spew.Dump(castkey)
+	spew.Dump(castkey)
 
-	// TODO: Not sure if these are the correct bytes ??????
-	agekey, err := SSHPrivateKeyToAge(castkey.D, []byte{})
+	// TODO: are these the correct bytes?
+	var privkey ed25519.PrivateKey  = castkey.D
 
+	bytes, err := ed25519PrivateKeyToCurve25519(privkey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	agekey, err := SSHPrivateKeyToAge(bytes, []byte{})
 	if err != nil {
 		log.Fatal(err)
 	}
