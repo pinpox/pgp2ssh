@@ -1,3 +1,19 @@
+1. I have a GPG keypair in the same format as the one provided in `test-key.asc`. It is `ed25519`.
+2. That key was used to encrypt a file with [age encryption](https://github.com/FiloSottile/age) as shown below
+3. I want to decrypt that file, but only have a GPG secret key, as I couldn't
+   find out how to derive a SSH or age key from it.
+
+**GOAL**: Derive an age key from the provided GPG key that decrypt the file as
+shown below. A SSH key is also enough, since it can be used with `ssh-to-age` to
+derive the age key.
+
+##### Notes:
+
+- A tool exists to do this for RSA keys: [openpgp2ssh](https://manpages.ubuntu.com/manpages/xenial/man1/openpgp2ssh.1.html) but it does not seem to support `ed25519` keys
+- Work on `gnupg` was started for this feature, but never finished see this
+  issue and commit: https://dev.gnupg.org/T6647
+
+## Example
 
 Example key provided in `test-key.asc` to be imported. Use `--homedir` with
 `gpg` to set a temporary `.gnupg` directory
@@ -39,8 +55,14 @@ age18s8m9hvlrwvltgys4lafyyqe356ntc7e06t4kd2nccqm5amsaa2s878mju # saved as age-pu
 ❯ age --encrypt -R age-public-key testfile.txt > testfile.txt.age
 ```
 
-### Try to decrypt
+### Get secret age key
 
+```sh
+❯ go run main.go                                                                                                                                                                                                       impure ❄ ssh-to-age age
+AGE-SECRET-KEY-165W948VSG5QEM0RPEUX8T3K4YXJT2WF83C2GXQH8Q3Q0ZHCTH44SSV0H34 # saved as age-secret-key
+```
+
+### Try to decrypt
 ```sh
 ❯ age --decrypt --identity age-secret-key --output decrypted testfile.txt.age                                                                                                                                          impure ❄ ssh-to-age age
 age: error: no identity matched any of the recipients
