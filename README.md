@@ -1,11 +1,8 @@
-1. I have a GPG keypair in the same format as the one provided in `test-key.asc`. It is `ed25519`.
-2. That key was used to encrypt a file with [age encryption](https://github.com/FiloSottile/age) as shown below
-3. I want to decrypt that file, but only have a GPG secret key, as I couldn't
-   find out how to derive a SSH or age key from it.
+# gpg2age
 
-**GOAL**: Derive an age key from the provided GPG key that decrypt the file as
-shown below. A SSH key is also enough, since it can be used with `ssh-to-age` to
-derive the age key.
+Derive private ed25519 SSH key from private PGP key.
+
+GPG itself only supports exporting _public_ SSH keys and other tools don't work for ed25519 keys.
 
 ##### Notes:
 
@@ -13,60 +10,47 @@ derive the age key.
 - Work on `gnupg` was started for this feature, but never finished see this
   issue and commit: https://dev.gnupg.org/T6647
 
-## Example
+## Instructions
 
-Example key provided in `test-key.asc` to be imported. Use `--homedir` with
-`gpg` to set a temporary `.gnupg` directory
-
-```sh
-❯ gpg --homedir ./gnupg --import test-key.asc                                                                                                                                                                          impure ❄ ssh-to-age age
-gpg: WARNING: unsafe permissions on homedir '/home/pinpox/code/github.com/pinpox/gpg2age/./gnupg'
-gpg: key 76188CF30717B54E: public key "test (test) <test@test.com>" imported
-gpg: key 76188CF30717B54E: secret key imported
-gpg: Total number processed: 1
-gpg:               imported: 1
-gpg:       secret keys read: 1
-gpg:   secret keys imported: 1
-
-❯ gpg --homedir ./gnupg_testkey/ -K
-/home/pinpox/code/github.com/pinpox/gpg2age/./gnupg_testkey/pubring.kbx
------------------------------------------------------------------------
-sec   ed25519 2024-03-25 [C]
-      9FE4D484B69DB9F5C7AA208E76188CF30717B54E
-uid           [ultimate] test (test) <test@test.com>
-ssb   ed25519 2024-03-25 [S]
-ssb   cv25519 2024-03-25 [E]
-ssb   ed25519 2024-03-25 [A]
-```
-
-### Get age key and encrypt test file
+First you need to export your PGP key from GPG:
 
 ```sh
-❯ gpg --homedir ./gnupg --export-ssh-key 9FE4D484B69DB9F5C7AA208E76188CF30717B54E
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICYvKXGcG4a19tTT0Rycbn+D0r/YlKltLJ9dY2gR/Fjx openpgp:0x47C9F3FF
+❯ gpg2 --export-secret-keys --armor test@test.test >priv-gpg
 ```
+
+Then identify the public SSH key that was used to encrypt your secret.
+You can search for your GitHub username in: https://fluence-dao.s3.eu-west-1.amazonaws.com/metadata.json
+
+If you have multiple subkeys, usually it is the authenticate key highlighted with `[A]` in the output of:
 
 ```sh
-❯ gpg --homedir ./gnupg --export-ssh-key 9FE4D484B69DB9F5C7AA208E76188CF30717B54E | ssh-to-age                                                                                                                             impure ❄ ssh-to-age
-age18s8m9hvlrwvltgys4lafyyqe356ntc7e06t4kd2nccqm5amsaa2s878mju # saved as age-public-key
+❯ gpg --list-secret-keys --with-keygrip
 ```
+
+### Derive private SSH key
 
 ```sh
-❯ age --encrypt -R age-public-key testfile.txt > testfile.txt.age
+❯ go run main.go
 ```
 
-### Get secret age key
+It'll ask you for the path to your private PGP key, followed by choosing the key/subkey and if your PGP key is encrypted it'll ask for the passphrase.
+
+In the output, verify that the public SSH key printed matches the one in `metadata.json`.
+If it matches, the last part of the output it will print the matching private SSH key.
+You can save the key to a file and use how you want.
+
+### Example: Decrypt age files
+
+If you want to decrypt a file that was encryptd by `age` with your public SSH key, you can just use `age` as normal to decrypt the file using the SSH private key that we've got in the previous step:
 
 ```sh
-❯ go run main.go                                                                                                                                                                                                       impure ❄ ssh-to-age age
-AGE-SECRET-KEY-165W948VSG5QEM0RPEUX8T3K4YXJT2WF83C2GXQH8Q3Q0ZHCTH44SSV0H34 # saved as age-secret-key
+❯ age --decrypt --identity ./ssh-secret-key --output decrypted ./testfile.txt.age
 ```
 
-### Try to decrypt
-```sh
-❯ age --decrypt --identity age-secret-key --output decrypted testfile.txt.age                                                                                                                                          impure ❄ ssh-to-age age
-age: error: no identity matched any of the recipients
-age: report unexpected or unhelpful errors at https://filippo.io/age/report
-```
+### Support & Donations
 
-FAIL :(
+This project was built with lots of headaches by [pinpox](https://github.com/pinpox/) & [felschr](https://github.com/felschr/). If you need help, feel free to contact us.
+
+And if you want to thank us, you can send us any crypto or token to our Ethereum / Polygon wallets 😊:  
+pinpox: `0x3d479e19ae8d1a67becdaeaf8d2d37c8e425bd03`
+felschr: `0xD66753D737603E18018281E298Df86DE402d313E`
