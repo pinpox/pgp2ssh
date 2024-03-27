@@ -43,7 +43,7 @@ func main() {
 	log.Println("Enter path to private PGP key (default: ./priv.asc):")
 	_, err := fmt.Scanf("%s", &keyfile)
 	if err != nil && err.Error() == "unexpected newline" {
-		keyfile := "./priv.asc"
+		keyfile = "./priv.asc"
 	} else if err != nil {
 		log.Fatal(err)
 	}
