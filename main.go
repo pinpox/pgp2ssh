@@ -70,7 +70,7 @@ func SSHPrivateKeyToAge(bytes []byte) (*string, error) {
 
 func main() {
   // TODO turn these into CLI inputs
-	keyfile := "./priv-gpg"
+	keyfile := "./test-key.asc"
 
 	e, err := readEntity(keyfile)
 	if err != nil {
