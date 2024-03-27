@@ -70,6 +70,7 @@ func SSHPrivateKeyToAge(bytes []byte) (*string, error) {
 
 func main() {
   // TODO turn these into CLI inputs
+	// keyfile := "/home/pinpox/gnutmp/0xA5BCEFD22D30118A.priv.asc"
 	keyfile := "./test-key.asc"
 
 	e, err := readEntity(keyfile)
@@ -143,15 +144,17 @@ func main() {
   log.Println("public SSH key:", string(ssh.MarshalAuthorizedKey(sshPub)))
 
 	// TODO: are these the correct bytes?
-	var privkey ed25519.PrivateKey = castkey.D
+	// var privkey ed25519.PrivateKey = castkey.D
 	// var privkey ed25519.PrivateKey = castkey.MarshalByteSecret()
-  // var privkey = ed25519.NewKeyFromSeed(castkey.D)
+  var privkey = ed25519.NewKeyFromSeed(castkey.D)
 
   // TODO is this right?
 	bytes, err := ed25519PrivateKeyToCurve25519(privkey)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// bytes = privkee
 
   // TODO trying to get private key as age key
 	agekey, err := SSHPrivateKeyToAge(bytes)
