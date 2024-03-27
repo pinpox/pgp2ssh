@@ -1,4 +1,4 @@
-# gpg2age
+# pgp2ssh
 
 Derive private ed25519 SSH key from private PGP key.
 
