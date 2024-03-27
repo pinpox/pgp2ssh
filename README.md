@@ -30,7 +30,8 @@ If you have multiple subkeys, usually it is the authenticate key highlighted wit
 ### Derive private SSH key
 
 ```sh
-❯ go run main.go
+❯ go build
+❯ ./pgp2ssh
 ```
 
 It'll ask you for the path to your private PGP key, followed by choosing the key/subkey and if your PGP key is encrypted it'll ask for the passphrase.

@@ -1,4 +1,4 @@
-module gpg2age
+module pgp2ssh
 
 go 1.21.8
 
