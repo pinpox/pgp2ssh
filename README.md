@@ -34,6 +34,11 @@ If you have multiple subkeys, usually it is the authenticate key highlighted wit
 ❯ ./pgp2ssh
 ```
 
+**Nix/NixOS Users**
+
+A flake is provided for Nix users. Just use `nix run` instead of building and
+running manually.
+
 It'll ask you for the path to your private PGP key, followed by choosing the key/subkey and if your PGP key is encrypted it'll ask for the passphrase.
 
 In the output, verify that the public SSH key printed matches the one in `metadata.json`.
