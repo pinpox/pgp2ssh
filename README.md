@@ -53,6 +53,30 @@ If you want to decrypt a file that was encryptd by `age` with your public SSH ke
 ❯ age --decrypt --identity ./ssh-secret-key --output decrypted ./testfile.txt.age
 ```
 
+## Troubleshooting
+
+If the conversion fails with the error:
+
+```
+2024/03/27 22:09:09 openpgp: invalid data: user ID signature with wrong type
+```
+
+You might be missing the private key of your subkeys. When running `gpg -K` you
+should **NOT** see a `>` infront of the keys like this:
+
+```
+ssb>  ed25519/0xB68746238E59B548 2018-07-09 [S] [expires: 2026-01-02]
+      Keygrip = C89E5AABCBF7142DBC26E68FB3121DE12DCBF4FF
+ssb>  cv25519/0x65CD5E0200C56C17 2018-07-09 [E] [expires: 2026-01-02]
+      Keygrip = 867EA9F6ADBEBE18ED98253B884F53CBD53C526B
+ssb>  ed25519/0xF36CF32DF9B09855 2018-07-09 [A] [expires: 2026-01-02]
+      Keygrip = 553D56865642B05AB3C5B62DC68795691702B960
+```
+The `>` (corner of a card) indicates, that the private part is on a smart card
+or not available. This may also be caused by expired keys. For possible
+solutions see https://github.com/pinpox/pgp2ssh/issues/6
+
+
 ### Support & Donations
 
 This project was built with lots of headaches by [pinpox](https://github.com/pinpox/) & [felschr](https://github.com/felschr/). If you need help, feel free to contact us.
@@ -60,3 +84,5 @@ This project was built with lots of headaches by [pinpox](https://github.com/pin
 And if you want to thank us, you can send us any crypto or token to our Ethereum / Polygon wallets 😊:  
 pinpox: `0x3d479e19ae8d1a67becdaeaf8d2d37c8e425bd03`
 felschr: `0xD66753D737603E18018281E298Df86DE402d313E`
+
+<a href="https://www.buymeacoffee.com/pinpox"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=😎&slug=pinpox&button_colour=82aaff&font_colour=000000&font_family=Inter&outline_colour=000000&coffee_colour=FFDD00"></a>
