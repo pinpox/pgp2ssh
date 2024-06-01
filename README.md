@@ -82,7 +82,7 @@ solutions see https://github.com/pinpox/pgp2ssh/issues/6
 This project was built with lots of headaches by [pinpox](https://github.com/pinpox/) & [felschr](https://github.com/felschr/). If you need help, feel free to contact us.
 
 And if you want to thank us, you can send us any crypto or token to our Ethereum / Polygon wallets 😊:  
-pinpox: `0x3d479e19ae8d1a67becdaeaf8d2d37c8e425bd03`
+pinpox: `0xde031f16976AFcaC613087B6213Eb521F63d3A49`
 felschr: `0xD66753D737603E18018281E298Df86DE402d313E`
 
 <a href="https://www.buymeacoffee.com/pinpox"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=😎&slug=pinpox&button_colour=82aaff&font_colour=000000&font_family=Inter&outline_colour=000000&coffee_colour=FFDD00"></a>
