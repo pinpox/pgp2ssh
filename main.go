@@ -13,10 +13,12 @@ import (
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
 
 	"crypto/ed25519"
+	"crypto/rsa"
 	"errors"
+	"reflect"
+
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/term"
-	"reflect"
 )
 
 func readEntity(keypath string) (*openpgp.Entity, error) {
@@ -35,8 +37,47 @@ func readEntity(keypath string) (*openpgp.Entity, error) {
 }
 
 var (
-	UnsupportedKeyType = errors.New("only ed25519 keys are supported")
+	UnsupportedKeyType = errors.New("only ed25519 and rsa keys are supported")
 )
+
+func getEDDSAKey(castkey *eddsa.PrivateKey) []byte {
+	log.Println("public key type:", reflect.TypeOf(castkey.PublicKey))
+	var pubkey ed25519.PublicKey = castkey.PublicKey.X
+
+	sshPub, err := ssh.NewPublicKey(pubkey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("public SSH key:\n" + string(ssh.MarshalAuthorizedKey(sshPub)))
+
+	var privkey = ed25519.NewKeyFromSeed(castkey.D)
+
+	privPem, err := ssh.MarshalPrivateKey(&privkey, "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return pem.EncodeToMemory(privPem)
+}
+
+func getRSAKey(castkey *rsa.PrivateKey) []byte {
+
+	log.Println("public key type:", reflect.TypeOf(castkey.PublicKey))
+	var pubkey rsa.PublicKey = castkey.PublicKey
+
+	sshPub, err := ssh.NewPublicKey(&pubkey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("public SSH key:\n" + string(ssh.MarshalAuthorizedKey(sshPub)))
+
+	// var privkey = ed25519.NewKeyFromSeed(castkey.D)
+
+	privPem, err := ssh.MarshalPrivateKey(castkey, "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return pem.EncodeToMemory(privPem)
+}
 
 func main() {
 	var keyfile string
@@ -56,7 +97,7 @@ func main() {
 	log.Println("Keys:")
 	log.Println("[0]", e.PrimaryKey.KeyIdString()+" (primary)")
 	for i := 0; i < len(e.Subkeys); i++ {
-		log.Println(fmt.Sprintf("[%d]", i+1), e.Subkeys[i].PublicKey.KeyIdString()+" (subkey)")
+		log.Println(fmt.Sprintf("[%d]", i+1), e.Subkeys[i].PrivateKey.KeyIdString()+" (subkey)")
 	}
 
 	log.Println("Choose key by index (default: 0):")
@@ -75,7 +116,7 @@ func main() {
 		targetKey = e.PrivateKey
 	} else if keyIndex > 0 {
 		var subkey = e.Subkeys[keyIndex-1]
-		log.Println(fmt.Sprintf("Continuing with key [%d]", keyIndex), subkey.PublicKey.KeyIdString())
+		log.Println(fmt.Sprintf("Continuing with key [%d]", keyIndex), subkey.PrivateKey.KeyIdString())
 		targetKey = subkey.PrivateKey
 	} else {
 		log.Fatal("Invalid key index")
@@ -89,28 +130,17 @@ func main() {
 		}
 		targetKey.Decrypt(bytePassphrase)
 	}
-
 	log.Println("private key type:", reflect.TypeOf(targetKey.PrivateKey))
-	castkey, ok := targetKey.PrivateKey.(*eddsa.PrivateKey)
-	if !ok {
-		log.Fatal("failed to cast")
+	castkey_eddsa, ok_eddsa := targetKey.PrivateKey.(*eddsa.PrivateKey)
+	if ok_eddsa {
+		privateKeyPem := getEDDSAKey(castkey_eddsa)
+		log.Println("Private SSH key:\n" + string(privateKeyPem))
+		return
 	}
-
-	log.Println("public key type:", reflect.TypeOf(castkey.PublicKey))
-	var pubkey ed25519.PublicKey = castkey.PublicKey.X
-
-	sshPub, err := ssh.NewPublicKey(pubkey)
-	if err != nil {
-		log.Fatal(err)
+	castkey_rsa, ok_rsa := targetKey.PrivateKey.(*rsa.PrivateKey)
+	if ok_rsa {
+		privateKeyPem := getRSAKey(castkey_rsa)
+		log.Println("Private SSH key:\n" + string(privateKeyPem))
+		return
 	}
-	log.Println("public SSH key:\n" + string(ssh.MarshalAuthorizedKey(sshPub)))
-
-	var privkey = ed25519.NewKeyFromSeed(castkey.D)
-
-	privPem, err := ssh.MarshalPrivateKey(&privkey, "")
-	if err != nil {
-		log.Fatal(err)
-	}
-	privateKeyPem := pem.EncodeToMemory(privPem)
-	log.Println("Private SSH key:\n" + string(privateKeyPem))
 }
